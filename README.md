@@ -1,1 +1,1 @@
-# HW_10_Solution
+# Solution to Homework Assignment 10
