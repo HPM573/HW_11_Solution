@@ -57,8 +57,8 @@ def plot_survival_curves_and_histograms(sim_outcomes_none, sim_outcomes_combo):
 
     # get survival curves of both treatments
     survival_curves = [
-        sim_outcomes_none.nLivingPatients,
-        sim_outcomes_combo.nLivingPatients
+        sim_outcomes_none.survivalTimes,
+        sim_outcomes_combo.survivalTimes
     ]
 
     # graph survival curve
@@ -71,19 +71,19 @@ def plot_survival_curves_and_histograms(sim_outcomes_none, sim_outcomes_combo):
     )
 
     # histograms of survival times
-    set_of_survival_times = [
-        sim_outcomes_none.survivalTimes,
-        sim_outcomes_combo.survivalTimes
+    set_of_strokes = [
+        sim_outcomes_none.nTotalStrokes,
+        sim_outcomes_combo.nTotalStrokes
     ]
 
     # graph histograms
     Figs.graph_histograms(
-        data_sets=set_of_survival_times,
-        title='Histogram of patient survival time',
-        x_label='Survival time (year)',
+        data_sets=set_of_strokes,
+        title='Histogram of number of strokes',
+        x_label='Number of Strokes',
         y_label='Counts',
         bin_width=1,
-        legend=['No Therapy', 'Combination Therapy'],
+        legend=['No Therapy', 'Anticoagulation'],
         transparency=0.6
     )
 
@@ -138,6 +138,21 @@ def print_comparative_outcomes(sim_outcomes_none, sim_outcomes_combo):
           .format(1 - D.ALPHA, prec=0),
           estimate_CI)
 
+
+ # increase in mean discounted utility under combination therapy with respect to mono therapy
+    increase_number_strokes = Stat.DifferenceStatIndp(
+        name='Increase in mean discounted utility',
+        x=sim_outcomes_combo.nTotalStrokes,
+        y_ref=sim_outcomes_none.nTotalStrokes)
+
+    # estimate and CI
+    estimate_CI = increase_number_strokes.get_formatted_mean_and_interval(interval_type='c',
+                                                                              alpha=D.ALPHA,
+                                                                              deci=2)
+
+    print("Increase in mean discounted utility and {:.{prec}%} confidence interval:"
+          .format(1 - D.ALPHA, prec=0),
+          estimate_CI)
 
 def report_CEA_CBA(sim_outcomes_none, sim_outcomes_combo):
     """ performs cost-effectiveness and cost-benefit analyses
