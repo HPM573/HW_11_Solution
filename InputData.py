@@ -28,5 +28,5 @@ ANNUAL_STATE_COST = [
 
 ANTICOAG_COST = 2000
 
-#anticoagulation relative risk in reducing stroke incidence while in “Post-Stroke”
+# anticoagulation relative risk in reducing stroke incidence while in “Post-Stroke”
 ANTICOAG_RR = 0.65
