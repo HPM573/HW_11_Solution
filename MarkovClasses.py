@@ -51,7 +51,7 @@ class PatientStateMonitor:
         if new_state == P.HealthStates.DEAD:
             self.survivalTime = time_step + 0.5  # correct for half cycle effect
 
-        if self.currentState == P.HealthStates.STROKE:
+        if new_state == P.HealthStates.STROKE:
             self.nStrokes += 1
 
         self.costUtilityMonitor.update(t=time_step,
@@ -119,7 +119,7 @@ class CohortOutcomes:
     def __init__(self):
 
         self.survivalTimes = []
-        self.nTotalStrokes = []
+        self.nStrokes = []
         self.nLivingPatients = None
         self.costs = []
         self.utilities = []
@@ -134,14 +134,14 @@ class CohortOutcomes:
         for patient in simulated_patients:
             if patient.stateMonitor.survivalTime is not None:
                 self.survivalTimes.append(patient.stateMonitor.survivalTime)
-            self.nTotalStrokes.append(patient.stateMonitor.nStrokes)
+            self.nStrokes.append(patient.stateMonitor.nStrokes)
             self.costs.append(patient.stateMonitor.costUtilityMonitor.totalDiscountedCost)
             self.utilities.append(patient.stateMonitor.costUtilityMonitor.totalDiscountedUtility)
 
         self.statSurvivalTime = Stat.SummaryStat('Survival Time',self.survivalTimes)
         self.statCost = Stat.SummaryStat('Discounted cost', self.costs)
         self.statUtility = Stat.SummaryStat('Discounted utility', self.utilities)
-        self.statNumStrokes = Stat.SummaryStat('Total Number of Strokes', self.nTotalStrokes)
+        self.statNumStrokes = Stat.SummaryStat('Total Number of Strokes', self.nStrokes)
 
         self.nLivingPatients = PathCls.PrevalencePathBatchUpdate(
             name = '# of living patients',

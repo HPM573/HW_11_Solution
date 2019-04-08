@@ -49,16 +49,16 @@ def print_outcomes(sim_outcomes, therapy_name):
     print("")
 
 
-def plot_survival_curves_and_histograms(sim_outcomes_none, sim_outcomes_combo):
+def plot_survival_curves_and_histograms(sim_outcomes_none, sim_outcomes_anticoag):
     """ draws the survival curves and the histograms of time until HIV deaths
-    :param sim_outcomes_mono: outcomes of a cohort simulated under mono therapy
-    :param sim_outcomes_combo: outcomes of a cohort simulated under combination therapy
+    :param sim_outcomes_mono: outcomes of a cohort simulated under no therapy
+    :param sim_outcomes_anticoag: outcomes of a cohort simulated under anticoagulation
     """
 
     # get survival curves of both treatments
     survival_curves = [
         sim_outcomes_none.nLivingPatients,
-        sim_outcomes_combo.nLivingPatients
+        sim_outcomes_anticoag.nLivingPatients
     ]
 
     # graph survival curve
@@ -72,8 +72,8 @@ def plot_survival_curves_and_histograms(sim_outcomes_none, sim_outcomes_combo):
 
     # histograms of survival times
     set_of_strokes = [
-        sim_outcomes_none.nTotalStrokes,
-        sim_outcomes_combo.nTotalStrokes
+        sim_outcomes_none.nStrokes,
+        sim_outcomes_anticoag.nStrokes
     ]
 
     # graph histograms
@@ -88,17 +88,17 @@ def plot_survival_curves_and_histograms(sim_outcomes_none, sim_outcomes_combo):
     )
 
 
-def print_comparative_outcomes(sim_outcomes_none, sim_outcomes_combo):
+def print_comparative_outcomes(sim_outcomes_none, sim_outcomes_anticoag):
     """ prints average increase in survival time, discounted cost, and discounted utility
     under combination therapy compared to mono therapy
-    :param sim_outcomes_mono: outcomes of a cohort simulated under mono therapy
-    :param sim_outcomes_combo: outcomes of a cohort simulated under combination therapy
+    :param sim_outcomes_mono: outcomes of a cohort simulated under no therapy
+    :param sim_outcomes_anticoag: outcomes of a cohort simulated under anticoagulation
     """
 
-    # increase in mean survival time under combination therapy with respect to mono therapy
+    # increase in mean survival time under anticoagulation therapy with respect to no therapy
     increase_survival_time = Stat.DifferenceStatIndp(
         name='Increase in mean survival time',
-        x=sim_outcomes_combo.survivalTimes,
+        x=sim_outcomes_anticoag.survivalTimes,
         y_ref=sim_outcomes_none.survivalTimes)
 
     # estimate and CI
@@ -112,7 +112,7 @@ def print_comparative_outcomes(sim_outcomes_none, sim_outcomes_combo):
     # increase in mean discounted cost under combination therapy with respect to mono therapy
     increase_discounted_cost = Stat.DifferenceStatIndp(
         name='Increase in mean discounted cost',
-        x=sim_outcomes_combo.costs,
+        x=sim_outcomes_anticoag.costs,
         y_ref=sim_outcomes_none.costs)
 
     # estimate and CI
@@ -127,7 +127,7 @@ def print_comparative_outcomes(sim_outcomes_none, sim_outcomes_combo):
     # increase in mean discounted utility under combination therapy with respect to mono therapy
     increase_discounted_utility = Stat.DifferenceStatIndp(
         name='Increase in mean discounted utility',
-        x=sim_outcomes_combo.utilities,
+        x=sim_outcomes_anticoag.utilities,
         y_ref=sim_outcomes_none.utilities)
 
     # estimate and CI
@@ -138,42 +138,43 @@ def print_comparative_outcomes(sim_outcomes_none, sim_outcomes_combo):
           .format(1 - D.ALPHA, prec=0),
           estimate_CI)
 
- # increase in mean discounted utility under combination therapy with respect to mono therapy
+    # change in number of strokes
     increase_number_strokes = Stat.DifferenceStatIndp(
         name='change in number of strokes',
-        x=sim_outcomes_combo.nTotalStrokes,
-        y_ref=sim_outcomes_none.nTotalStrokes)
+        x=sim_outcomes_anticoag.nStrokes,
+        y_ref=sim_outcomes_none.nStrokes)
 
     # estimate and CI
     estimate_CI = increase_number_strokes.get_formatted_mean_and_interval(interval_type='c',
                                                                               alpha=D.ALPHA,
                                                                               deci=2)
 
-    print("Increase in mean discounted utility and {:.{prec}%} confidence interval:"
+    print("Change in the number of strokes and {:.{prec}%} confidence interval:"
           .format(1 - D.ALPHA, prec=0),
           estimate_CI)
 
-def report_CEA_CBA(sim_outcomes_none, sim_outcomes_combo):
+
+def report_CEA_CBA(sim_outcomes_none, sim_outcomes_anticoag):
     """ performs cost-effectiveness and cost-benefit analyses
-    :param sim_outcomes_mono: outcomes of a cohort simulated under mono therapy
-    :param sim_outcomes_combo: outcomes of a cohort simulated under combination therapy
+    :param sim_outcomes_mono: outcomes of a cohort simulated under no therapy
+    :param sim_outcomes_anticoag: outcomes of a cohort simulated under anticoagultation therapy
     """
 
     # define two strategies
-    none_therapy_strategy = Econ.Strategy(
-        name='Mono Therapy',
+    no_therapy_strategy = Econ.Strategy(
+        name='No Therapy',
         cost_obs=sim_outcomes_none.costs,
         effect_obs=sim_outcomes_none.utilities,
     )
-    combo_therapy_strategy = Econ.Strategy(
-        name='Combination Therapy',
-        cost_obs=sim_outcomes_combo.costs,
-        effect_obs=sim_outcomes_combo.utilities,
+    anticoag_therapy_strategy = Econ.Strategy(
+        name='Anticoagulation Therapy',
+        cost_obs=sim_outcomes_anticoag.costs,
+        effect_obs=sim_outcomes_anticoag.utilities,
     )
 
     # do CEA
     CEA = Econ.CEA(
-        strategies=[none_therapy_strategy, combo_therapy_strategy],
+        strategies=[no_therapy_strategy, anticoag_therapy_strategy],
         if_paired=False
     )
 
@@ -190,7 +191,7 @@ def report_CEA_CBA(sim_outcomes_none, sim_outcomes_combo):
 
     # CBA
     NBA = Econ.CBA(
-        strategies=[none_therapy_strategy, combo_therapy_strategy],
+        strategies=[no_therapy_strategy, anticoag_therapy_strategy],
         if_paired=False
     )
     # show the net monetary benefit figure
