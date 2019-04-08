@@ -1,34 +1,30 @@
 from enum import Enum
+import copy
 import InputData as D
 
 
 class HealthStates(Enum):
-    """ health states of patients with HIV """
+    """ health states of patients """
     WELL = 0
-    STROKE = 1
-    POST_STROKE = 2
-    DEATH = 3
+    POST_STROKE = 1
+    DEAD = 2
+    STROKE = 3
 
 
 class Therapies(Enum):
-    """ mono vs. combination therapy """
+    """ none vs anticoagulation """
     NONE = 0
     ANTICOAG = 1
 
 
-class ParametersFixed():
+class ParametersFixed:
     def __init__(self, therapy):
 
         # selected therapy
         self.therapy = therapy
 
-        #initial health state
+        # initial health state
         self.initialHealthState = HealthStates.WELL
-
-        # simulation time step
-        self.delta_t = D.DELTA_T
-
-        self.adjDiscountRate = D.DISCOUNT * D.DELTA_T
 
         # annual treatment cost
         if self.therapy == Therapies.NONE:
@@ -38,47 +34,65 @@ class ParametersFixed():
 
         # transition probability matrix of the selected therapy
         self.prob_matrix = []
-        # treatment relative risk
-        self.treatmentRR = 0
 
         # calculate transition probabilities depending of which therapy options is in use
         if therapy == Therapies.NONE:
-            self.prob_matrix = D.TRANS_RATE_MATRIX_1
+            self.prob_matrix = get_prob_matrix_no_anticoag()
         else:
-            self.prob_matrix = get_prob_matrix_anticoag(D.TRANS_RATE_MATRIX_1)
+            self.prob_matrix = get_prob_matrix_anticoag(
+                prob_matrix_no_anticoag=get_prob_matrix_no_anticoag())
 
-        self.annualStateCosts = D.HEALTH_COST
-        self.annualStateUtilities = D.HEALTH_UTILITY
+        self.annualStateCosts = D.ANNUAL_STATE_COST
+        self.annualStateUtilities = D.ANNUAL_STATE_UTILITY
+
+        # discount rate
+        self.discountRate = D.DISCOUNT
 
 
-def get_prob_matrix_anticoag(trans_matrix):
+def get_prob_matrix_no_anticoag():
+
+    # transition probability matrix with temporary state Stroke
+    matrix = [
+        [1 - D.P_STROKE,    0,                  0,      D.P_STROKE],        # WELL
+        [0,                 1 - D.P_RE_STROKE,  0,      D.P_RE_STROKE],     # POST-STROKE
+        [0,                 0,                  0,      1],                 # DEATH
+        [0,                 D.P_SURV,           1 - D.P_SURV, 0]            # STROKE
+    ]
+
+    return matrix
+
+
+def get_prob_matrix_anticoag(prob_matrix_no_anticoag):
     """
-    :param prob_matrix_mono: (list of lists) transition probability matrix under mono therapy
-    :param combo_rr: relative risk of the combination treatment
-    :returns (list of lists) transition probability matrix under combination therapy """
+    :param prob_matrix_no_anticoag: (list of lists) transition probability matrix under no anticoagolation
+    :returns (list of lists) transition probability matrix under anticoagolation """
 
-    # create an empty list of lists
-    matrix_combo = []
-    for row in trans_matrix:
-        matrix_combo.append(np.zeros(len(row)))  # adding a row [0, 0, 0]
+    # There are two ways to build the probability matrix under anti-coagulation:
+    # 1. to get the probability matrix under no anti-coagulation and modify the row that corresponds to 'Post-Stroke',
+    # 2. build the matrix from scratch (similar to what we did in get_prob_matrix_no_anticoag() method).
+    # Here we use the first approach.
 
-    # populate the combo matrix
-    # calculate the effect of combo-therapy on non-diagonal elements
-    for s in range(len(matrix_combo)):
-        for next_s in range(s + 1, len(HealthStates)):
-            if s == HealthStates.POST_STROKE:
-                #post stroke to stroke changes
-                matrix_combo[s][HealthStates.STROKE.value] = 0.25 * trans_matrix[s][HealthStates.STROKE.value]
-                #post stroke to death changes
-                matrix_combo[s][HealthStates.DEATH.value] = 1.05 * trans_matrix[s][HealthStates.DEATH.value]
-                #remaining in post stroke
-                matrix_combo[s][s] = 1- matrix_combo[s][HealthStates.STROKE.value] - matrix_combo[s][HealthStates.DEATH]
+    # copy all the elements of probability matrix under no anti-coagulation to a
+    # new matrix. Note that we have to 'deepcopy' the elements of prob_matrix_no_anticoag
+    # to prob_matrix. Otherwise, any change we make to prob_matrix will also change
+    # prob_matrix_no_anticoag (see HW 1, Problem 4 for an example).
+    prob_matrix = copy.deepcopy(prob_matrix_no_anticoag)
 
-    # diagonal elements are calculated to make sure the sum of each row is 1
-    for s in range(len(matrix_combo)):
-        matrix_combo[s][s] = 1 - sum(matrix_combo[s][s+1:])
+    # change the probability of moving from 'post-stroke' to 'stroke' when anti-coagulation is used
+    prob_matrix[HealthStates.POST_STROKE.value][HealthStates.STROKE.value] = \
+        prob_matrix_no_anticoag[HealthStates.POST_STROKE.value][HealthStates.STROKE.value] * \
+            D.ANTICOAG_RR
 
-    return matrix_combo
+    # change the probability of staying in 'post-stroke' when anti-coagulation is used
+    prob_matrix[HealthStates.POST_STROKE.value][HealthStates.POST_STROKE.value] = \
+        1 - prob_matrix[HealthStates.POST_STROKE.value][HealthStates.STROKE.value]
+
+    return prob_matrix
 
 
-
+# # tests
+# matrix_no_anticoag = get_prob_matrix_no_anticoag()
+# matrix_with_anticoag = get_prob_matrix_anticoag(matrix_no_anticoag)
+#
+# print(matrix_no_anticoag)
+# print(matrix_with_anticoag)

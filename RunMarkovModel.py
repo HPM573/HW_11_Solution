@@ -31,6 +31,15 @@ Fig.graph_histogram(
     y_label='Count',
     bin_width=1)
 
+# histogram of number of strokes
+Fig.graph_histogram(
+    data=myCohort.cohortOutcomes.nTotalStrokes,
+    title='Histogram of Number of Strokes',
+    x_label='Number of Strokes',
+    y_label='Count',
+    bin_width=1
+)
+
 # print the outcomes of this simulated cohort
 Support.print_outcomes(sim_outcomes=myCohort.cohortOutcomes,
                        therapy_name=therapy)

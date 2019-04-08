@@ -1,6 +1,5 @@
 import SimPy.RandomVariantGenerators as RVGs
 import SimPy.SamplePathClasses as PathCls
-from InputData import HealthState
 import SimPy.EconEvalClasses as Econ
 import SimPy.StatisticalClasses as Stat
 import ParameterClasses as P
@@ -30,7 +29,7 @@ class Patient:
             new_state_index = empirical_dist.sample(rng=self.rng)
 
             # update health state
-            self.stateMonitor.update(time_step=t, new_state=HealthState(new_state_index))
+            self.stateMonitor.update(time_step=t, new_state=P.HealthStates(new_state_index))
 
             # increment time
             t += 1
@@ -46,13 +45,13 @@ class PatientStateMonitor:
 
     def update(self, time_step, new_state):
 
-        if self.currentState == P.HealthStates.DEATH:
+        if self.currentState == P.HealthStates.DEAD:
             return
 
-        if new_state == HealthState.DEAD:
+        if new_state == P.HealthStates.DEAD:
             self.survivalTime = time_step + 0.5  # correct for half cycle effect
 
-        if self.currentState == HealthState.STROKE:
+        if self.currentState == P.HealthStates.STROKE:
             self.nStrokes += 1
 
         self.costUtilityMonitor.update(t=time_step,
@@ -61,7 +60,7 @@ class PatientStateMonitor:
         self.currentState = new_state
 
     def get_if_alive(self):
-        if self.currentState != HealthState.DEAD:
+        if self.currentState != P.HealthStates.DEAD:
             return True
         else:
             return False
@@ -76,24 +75,25 @@ class PatientCostUtilityMonitor:
         self.totalDiscountedUtility = 0
 
     def update(self, t, current_state, next_state):
-        cost = 0.5 * (self.params.annualStateCosts[current_state.value]+
-                       self.params.annualStateCosts[next_state.value])
 
-        utility = 0.5 * (self.params.annualStateUtilities[current_state.value]+
+        cost = 0.5 * (self.params.annualStateCosts[current_state.value] +
+                      self.params.annualStateCosts[next_state.value])
+
+        utility = 0.5 * (self.params.annualStateUtilities[current_state.value] +
                          self.params.annualStateUtilities[next_state.value])
 
-        if next_state == P.HealthStates.DEATH:
+        # add the cost of anti-coagulation if applied
+        if next_state == P.HealthStates.DEAD:
             cost += 0.5 * self.params.annualTreatmentCost
-
         else:
             cost += 1 * self.params.annualTreatmentCost
 
-        self.totalDiscountedCost += Econ.pv_single_payment(payment = cost,
-                                                           discount_rate = self.params.adjDiscountRate/2,
-                                                           discount_period = 2 * t+1)
+        self.totalDiscountedCost += Econ.pv_single_payment(payment=cost,
+                                                           discount_rate=self.params.discountRate/2,
+                                                           discount_period=2 * t+1)
         self.totalDiscountedUtility += Econ.pv_single_payment(payment=utility,
-                                                              discount_rate=self.params.adjDiscountRate/2,
-                                                              discount_period=2* t+1)
+                                                              discount_rate=self.params.discountRate/2,
+                                                              discount_period=2 * t+1)
 
 
 class Cohort:
@@ -121,10 +121,8 @@ class CohortOutcomes:
         self.survivalTimes = []
         self.nTotalStrokes = []
         self.nLivingPatients = None
-        self.meanSurvivalTime = None
         self.costs = []
         self.utilities = []
-        self.meanNumStrokes = 0
 
         self.statSurvivalTime = None
         self.statCost = None
@@ -132,15 +130,14 @@ class CohortOutcomes:
         self.statNumStrokes = None
 
     def extract_outcomes(self, simulated_patients):
-        for patient in simulated_patients:
-            if not (patient.stateMonitor.survivalTime is None):
-                self.survivalTimes.append(patient.stateMonitor.survivalTime)
-                self.nTotalStrokes.append(patient.stateMonitor.nStrokes)
-                self.costs.append(patient.stateMonitor.costUtilityMonitor.totalDiscountedCost)
-                self.utilities.append(patient.stateMonitor.costUtilityMonitor.totalDiscountedUtility)
 
-        self.meanSurvivalTime = sum(self.survivalTimes) / len(self.survivalTimes)
-        self.meanNumStrokes = sum(self.nTotalStrokes)/len(self.nTotalStrokes)
+        for patient in simulated_patients:
+            if patient.stateMonitor.survivalTime is not None:
+                self.survivalTimes.append(patient.stateMonitor.survivalTime)
+            self.nTotalStrokes.append(patient.stateMonitor.nStrokes)
+            self.costs.append(patient.stateMonitor.costUtilityMonitor.totalDiscountedCost)
+            self.utilities.append(patient.stateMonitor.costUtilityMonitor.totalDiscountedUtility)
+
         self.statSurvivalTime = Stat.SummaryStat('Survival Time',self.survivalTimes)
         self.statCost = Stat.SummaryStat('Discounted cost', self.costs)
         self.statUtility = Stat.SummaryStat('Discounted utility', self.utilities)

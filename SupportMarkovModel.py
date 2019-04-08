@@ -57,8 +57,8 @@ def plot_survival_curves_and_histograms(sim_outcomes_none, sim_outcomes_combo):
 
     # get survival curves of both treatments
     survival_curves = [
-        sim_outcomes_none.survivalTimes,
-        sim_outcomes_combo.survivalTimes
+        sim_outcomes_none.nLivingPatients,
+        sim_outcomes_combo.nLivingPatients
     ]
 
     # graph survival curve
@@ -138,10 +138,9 @@ def print_comparative_outcomes(sim_outcomes_none, sim_outcomes_combo):
           .format(1 - D.ALPHA, prec=0),
           estimate_CI)
 
-
  # increase in mean discounted utility under combination therapy with respect to mono therapy
     increase_number_strokes = Stat.DifferenceStatIndp(
-        name='Increase in mean discounted utility',
+        name='change in number of strokes',
         x=sim_outcomes_combo.nTotalStrokes,
         y_ref=sim_outcomes_none.nTotalStrokes)
 
@@ -197,7 +196,7 @@ def report_CEA_CBA(sim_outcomes_none, sim_outcomes_combo):
     # show the net monetary benefit figure
     NBA.graph_incremental_NMBs(
         min_wtp=0,
-        max_wtp=50000,
+        max_wtp=100000,
         title='Cost-Benefit Analysis',
         x_label='Willingness-to-pay for one additional QALY ($)',
         y_label='Incremental Net Monetary Benefit ($)',
