@@ -1,14 +1,6 @@
-from enum import Enum
 import copy
 import InputData as D
-
-
-class HealthStates(Enum):
-    """ health states of patients """
-    WELL = 0
-    POST_STROKE = 1
-    DEAD = 2
-    STROKE = 3
+from enum import Enum
 
 
 class Therapies(Enum):
@@ -24,7 +16,7 @@ class ParametersFixed:
         self.therapy = therapy
 
         # initial health state
-        self.initialHealthState = HealthStates.WELL
+        self.initialHealthState = D.HealthStates.WELL
 
         # annual treatment cost
         if self.therapy == Therapies.NONE:
@@ -79,20 +71,20 @@ def get_prob_matrix_anticoag(prob_matrix_no_anticoag):
     prob_matrix = copy.deepcopy(prob_matrix_no_anticoag)
 
     # change the probability of moving from 'post-stroke' to 'stroke' when anti-coagulation is used
-    prob_matrix[HealthStates.POST_STROKE.value][HealthStates.STROKE.value] = \
-        prob_matrix_no_anticoag[HealthStates.POST_STROKE.value][HealthStates.STROKE.value] * \
+    prob_matrix[D.HealthStates.POST_STROKE.value][D.HealthStates.STROKE.value] = \
+        prob_matrix_no_anticoag[D.HealthStates.POST_STROKE.value][D.HealthStates.STROKE.value] * \
             D.ANTICOAG_RR
 
     # change the probability of staying in 'post-stroke' when anti-coagulation is used
-    prob_matrix[HealthStates.POST_STROKE.value][HealthStates.POST_STROKE.value] = \
-        1 - prob_matrix[HealthStates.POST_STROKE.value][HealthStates.STROKE.value]
+    prob_matrix[D.HealthStates.POST_STROKE.value][D.HealthStates.POST_STROKE.value] = \
+        1 - prob_matrix[D.HealthStates.POST_STROKE.value][D.HealthStates.STROKE.value]
 
     return prob_matrix
 
 
-# # tests
-# matrix_no_anticoag = get_prob_matrix_no_anticoag()
-# matrix_with_anticoag = get_prob_matrix_anticoag(matrix_no_anticoag)
-#
-# print(matrix_no_anticoag)
-# print(matrix_with_anticoag)
+# tests
+matrix_no_anticoag = get_prob_matrix_no_anticoag()
+matrix_with_anticoag = get_prob_matrix_anticoag(matrix_no_anticoag)
+
+print(matrix_no_anticoag)
+print(matrix_with_anticoag)

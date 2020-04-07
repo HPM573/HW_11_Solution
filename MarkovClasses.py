@@ -1,38 +1,38 @@
+from InputData import HealthStates
 import SimPy.RandomVariantGenerators as RVGs
 import SimPy.SamplePathClasses as PathCls
-import SimPy.EconEvalClasses as Econ
+import SimPy.MarkovClasses as Markov
+import SimPy.EconEval as Econ
 import SimPy.StatisticalClasses as Stat
-import ParameterClasses as P
 
 
 class Patient:
     def __init__(self, id, parameters):
 
         self.id = id
-        self.rng = RVGs.RNG(seed=id)
         self.params = parameters
-        self.stateMonitor = PatientStateMonitor(parameters=parameters)
+        self.markovJump = Markov.MarkovJumpProcess(transition_prob_matrix=self.params.prob_matrix)
+        self.stateMonitor = PatientStateMonitor(parameters=self.params)
 
     def simulate(self, n_time_steps):
 
-        t = 0
+        # random number generator
+        rng = RVGs.RNG(seed=self.id)
 
-        while self.stateMonitor.get_if_alive() and t < n_time_steps:
+        k = 0   # simulation time step
 
-            # find the transition probabilities to future states
-            trans_prob = self.params.prob_matrix[self.stateMonitor.currentState.value]
-
-            # create an empirical distribution
-            empirical_dist = RVGs.Empirical(probabilities=trans_prob)
-
-            # sample from the empirical distribution to get a new state
-            new_state_index = empirical_dist.sample(rng=self.rng)
+        while self.stateMonitor.get_if_alive() and k < n_time_steps:
+            # sample from the Markov jump process to get a new state
+            # (returns an integer from {0, 1, 2, ...})
+            new_state_index = self.markovJump.get_next_state(
+                current_state_index=self.stateMonitor.currentState.value,
+                rng=rng)
 
             # update health state
-            self.stateMonitor.update(time_step=t, new_state=P.HealthStates(new_state_index))
+            self.stateMonitor.update(time_step=k, new_state=HealthStates(new_state_index))
 
             # increment time
-            t += 1
+            k += 1
 
 
 class PatientStateMonitor:
@@ -45,13 +45,13 @@ class PatientStateMonitor:
 
     def update(self, time_step, new_state):
 
-        if self.currentState == P.HealthStates.DEAD:
+        if self.currentState == HealthStates.DEAD:
             return
 
-        if new_state == P.HealthStates.DEAD:
+        if new_state == HealthStates.DEAD:
             self.survivalTime = time_step + 0.5  # correct for half cycle effect
 
-        if new_state == P.HealthStates.STROKE:
+        if new_state == HealthStates.STROKE:
             self.nStrokes += 1
 
         self.costUtilityMonitor.update(t=time_step,
@@ -60,17 +60,16 @@ class PatientStateMonitor:
         self.currentState = new_state
 
     def get_if_alive(self):
-        if self.currentState != P.HealthStates.DEAD:
+        if self.currentState != HealthStates.DEAD:
             return True
         else:
             return False
 
 
 class PatientCostUtilityMonitor:
-    def __init__(self,parameters):
+    def __init__(self, parameters):
 
         self.params = parameters
-
         self.totalDiscountedCost = 0
         self.totalDiscountedUtility = 0
 
@@ -83,7 +82,7 @@ class PatientCostUtilityMonitor:
                          self.params.annualStateUtilities[next_state.value])
 
         # add the cost of anti-coagulation if applied
-        if next_state == P.HealthStates.DEAD:
+        if next_state == HealthStates.DEAD:
             cost += 0.5 * self.params.annualTreatmentCost
         else:
             cost += 1 * self.params.annualTreatmentCost
@@ -99,20 +98,22 @@ class PatientCostUtilityMonitor:
 class Cohort:
     def __init__(self, id, pop_size, parameters):
         self.id = id
-        self.patients = []
+        self.popSize = pop_size
+        self.params = parameters
         self.cohortOutcomes = CohortOutcomes()
-        self.initialPopSize = pop_size
-
-        for i in range(pop_size):
-            patient = Patient(id=id*pop_size + i, parameters=parameters)
-            self.patients.append(patient)
 
     def simulate(self, n_time_steps):
 
-        for patient in self.patients:
+        patients = []
+        for i in range(self.popSize):
+            patient = Patient(
+                id=self.id * self.popSize + i, parameters=self.params)
+            patients.append(patient)
+
+        for patient in patients:
             patient.simulate(n_time_steps)
 
-        self.cohortOutcomes.extract_outcomes(self.patients)
+        self.cohortOutcomes.extract_outcomes(patients)
 
 
 class CohortOutcomes:
@@ -144,7 +145,7 @@ class CohortOutcomes:
         self.statNumStrokes = Stat.SummaryStat('Total Number of Strokes', self.nStrokes)
 
         self.nLivingPatients = PathCls.PrevalencePathBatchUpdate(
-            name = '# of living patients',
+            name='# of living patients',
             initial_size= len(simulated_patients),
             times_of_changes=self.survivalTimes,
             increments=[-1]*len(self.survivalTimes)
