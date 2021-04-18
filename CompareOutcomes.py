@@ -8,7 +8,7 @@ import SupportMarkovModel as Support
 # create a cohort
 cohort_none = Cls.Cohort(id=0,
                          pop_size=D.POP_SIZE,
-                         parameters=P.ParametersFixed(therapy=P.Therapies.NONE))
+                         parameters=P.Parameters(therapy=P.Therapies.NONE))
 # simulate the cohort
 cohort_none.simulate(n_time_steps=D.SIM_TIME_STEPS)
 
@@ -16,7 +16,7 @@ cohort_none.simulate(n_time_steps=D.SIM_TIME_STEPS)
 # create a cohort
 cohort_anticoag = Cls.Cohort(id=1,
                              pop_size=D.POP_SIZE,
-                             parameters=P.ParametersFixed(therapy=P.Therapies.ANTICOAG))
+                             parameters=P.Parameters(therapy=P.Therapies.ANTICOAG))
 # simulate the cohort
 cohort_anticoag.simulate(n_time_steps=D.SIM_TIME_STEPS)
 

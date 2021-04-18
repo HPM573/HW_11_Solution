@@ -9,7 +9,7 @@ class Therapies(Enum):
     ANTICOAG = 1
 
 
-class ParametersFixed:
+class Parameters:
     def __init__(self, therapy):
 
         # selected therapy
@@ -25,13 +25,13 @@ class ParametersFixed:
             self.annualTreatmentCost = D.ANTICOAG_COST
 
         # transition probability matrix of the selected therapy
-        self.prob_matrix = []
+        self.probMatrix = []
 
         # calculate transition probabilities depending of which therapy options is in use
         if therapy == Therapies.NONE:
-            self.prob_matrix = get_prob_matrix_no_anticoag()
+            self.probMatrix = get_prob_matrix_no_anticoag()
         else:
-            self.prob_matrix = get_prob_matrix_anticoag(
+            self.probMatrix = get_prob_matrix_anticoag(
                 prob_matrix_no_anticoag=get_prob_matrix_no_anticoag())
 
         self.annualStateCosts = D.ANNUAL_STATE_COST
@@ -82,9 +82,10 @@ def get_prob_matrix_anticoag(prob_matrix_no_anticoag):
     return prob_matrix
 
 
-# tests
-matrix_no_anticoag = get_prob_matrix_no_anticoag()
-matrix_with_anticoag = get_prob_matrix_anticoag(matrix_no_anticoag)
+if __name__ == '__main__':
+    # tests
+    matrix_no_anticoag = get_prob_matrix_no_anticoag()
+    matrix_with_anticoag = get_prob_matrix_anticoag(matrix_no_anticoag)
 
-print(matrix_no_anticoag)
-print(matrix_with_anticoag)
+    print(matrix_no_anticoag)
+    print(matrix_with_anticoag)
