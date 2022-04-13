@@ -175,7 +175,7 @@ def report_CEA_CBA(sim_outcomes_none, sim_outcomes_anticoag):
         color='blue'
     )
 
-    # do CEA
+    # do cost-effectiveness analysis
     # (the first strategy in the list of strategies is assumed to be the 'Base' strategy)
     CEA = Econ.CEA(
         strategies=[no_therapy_strategy, anticoag_therapy_strategy],
@@ -200,14 +200,14 @@ def report_CEA_CBA(sim_outcomes_none, sim_outcomes_anticoag):
         effect_digits=2,
         icer_digits=2)
 
-    # CBA
-    NBA = Econ.CBA(
+    # cost-benefit analysis
+    CBA = Econ.CBA(
         strategies=[no_therapy_strategy, anticoag_therapy_strategy],
         wtp_range=[0, 100000],
         if_paired=False
     )
     # show the net monetary benefit figure
-    NBA.plot_incremental_nmbs(
+    CBA.plot_incremental_nmbs(
         title='Cost-Benefit Analysis',
         x_label='Willingness-to-pay per QALY ($)',
         y_label='Incremental Net Monetary Benefit ($)',

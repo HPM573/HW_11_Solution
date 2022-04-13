@@ -1,10 +1,10 @@
 import numpy as np
 
+import SimPy.EconEval as Econ
 import SimPy.Markov as Markov
 import SimPy.Plots.SamplePaths as Path
-from InputData import HealthStates
-import SimPy.EconEval as Econ
 import SimPy.Statistics as Stat
+from InputData import HealthStates
 
 
 class Patient:
@@ -107,16 +107,19 @@ class Cohort:
 
     def simulate(self, n_time_steps):
 
-        patients = []
+        # populate the cohort
         for i in range(self.popSize):
-            patient = Patient(
-                id=self.id * self.popSize + i, parameters=self.params)
-            patients.append(patient)
-
-        for patient in patients:
+            # create a new patient (use id * pop_size + n as patient id)
+            patient = Patient(id=self.id * self.popSize + i,
+                              parameters=self.params)
+            # simulate
             patient.simulate(n_time_steps)
 
-        self.cohortOutcomes.extract_outcomes(patients)
+            # store outputs of this simulation
+            self.cohortOutcomes.extract_outcome(simulated_patient=patient)
+
+        # calculate cohort outcomes
+        self.cohortOutcomes.calculate_cohort_outcomes(initial_pop_size=self.popSize)
 
 
 class CohortOutcomes:
@@ -133,15 +136,18 @@ class CohortOutcomes:
         self.statUtility = None
         self.statNumStrokes = None
 
-    def extract_outcomes(self, simulated_patients):
+    def extract_outcome(self, simulated_patient):
 
-        for patient in simulated_patients:
-            if patient.stateMonitor.survivalTime is not None:
-                self.survivalTimes.append(patient.stateMonitor.survivalTime)
-            self.nStrokes.append(patient.stateMonitor.nStrokes)
-            self.costs.append(patient.stateMonitor.costUtilityMonitor.totalDiscountedCost)
-            self.utilities.append(patient.stateMonitor.costUtilityMonitor.totalDiscountedUtility)
+        if simulated_patient.stateMonitor.survivalTime is not None:
+            self.survivalTimes.append(simulated_patient.stateMonitor.survivalTime)
+        self.nStrokes.append(simulated_patient.stateMonitor.nStrokes)
+        self.costs.append(simulated_patient.stateMonitor.costUtilityMonitor.totalDiscountedCost)
+        self.utilities.append(simulated_patient.stateMonitor.costUtilityMonitor.totalDiscountedUtility)
 
+    def calculate_cohort_outcomes(self, initial_pop_size):
+        """ calculates the cohort outcomes
+        :param initial_pop_size: initial population size
+        """
         self.statSurvivalTime = Stat.SummaryStat(
             name='Survival Time', data=self.survivalTimes)
         self.statCost = Stat.SummaryStat(
@@ -153,7 +159,7 @@ class CohortOutcomes:
 
         self.nLivingPatients = Path.PrevalencePathBatchUpdate(
             name='# of living patients',
-            initial_size=len(simulated_patients),
+            initial_size=initial_pop_size,
             times_of_changes=self.survivalTimes,
             increments=[-1]*len(self.survivalTimes)
         )
