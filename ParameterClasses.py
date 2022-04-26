@@ -1,6 +1,7 @@
 import copy
-import InputData as D
 from enum import Enum
+
+import InputData as D
 
 
 class Therapies(Enum):
@@ -18,16 +19,10 @@ class Parameters:
         # initial health state
         self.initialHealthState = D.HealthStates.WELL
 
-        # annual treatment cost
-        if self.therapy == Therapies.NONE:
-            self.annualTreatmentCost = 0
-        if self.therapy == Therapies.ANTICOAG:
-            self.annualTreatmentCost = D.ANTICOAG_COST
-
         # transition probability matrix of the selected therapy
         self.probMatrix = []
 
-        # calculate transition probabilities depending of which therapy options is in use
+        # calculate transition probabilities depending on which therapy options is in use
         if therapy == Therapies.NONE:
             self.probMatrix = get_prob_matrix_no_anticoag()
         else:
@@ -36,6 +31,10 @@ class Parameters:
 
         self.annualStateCosts = D.ANNUAL_STATE_COST
         self.annualStateUtilities = D.ANNUAL_STATE_UTILITY
+
+        # adding annual cost of anticoagulation
+        if self.therapy == Therapies.ANTICOAG:
+            self.annualStateCosts[D.HealthStates.POST_STROKE.value] += D.ANTICOAG_COST
 
         # discount rate
         self.discountRate = D.DISCOUNT

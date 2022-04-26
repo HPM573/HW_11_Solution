@@ -84,12 +84,6 @@ class PatientCostUtilityMonitor:
         utility = 0.5 * (self.params.annualStateUtilities[current_state.value] +
                          self.params.annualStateUtilities[next_state.value])
 
-        # add the cost of anti-coagulation if applied
-        if next_state == HealthStates.DEAD:
-            cost += 0.5 * self.params.annualTreatmentCost
-        else:
-            cost += 1 * self.params.annualTreatmentCost
-
         self.totalDiscountedCost += Econ.pv_single_payment(payment=cost,
                                                            discount_rate=self.params.discountRate/2,
                                                            discount_period=2 * t+1)
