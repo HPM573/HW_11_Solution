@@ -1,8 +1,8 @@
 import InputData as D
-import SimPy.EconEval as Econ
-import SimPy.Plots.Histogram as Hist
-import SimPy.Plots.SamplePaths as Path
-import SimPy.Statistics as Stat
+import deampy.econ_eval as econ
+import deampy.plots.histogram as hist
+import deampy.plots.sample_paths as path
+import deampy.statistics as stat
 
 
 def print_outcomes(sim_outcomes, therapy_name):
@@ -61,7 +61,7 @@ def plot_survival_curves_and_histograms(sim_outcomes_none, sim_outcomes_anticoag
     ]
 
     # graph survival curve
-    Path.plot_sample_paths(
+    path.plot_sample_paths(
         sample_paths=survival_curves,
         title='Survival curve',
         x_label='Simulation time step (year)',
@@ -77,7 +77,7 @@ def plot_survival_curves_and_histograms(sim_outcomes_none, sim_outcomes_anticoag
     ]
 
     # graph histograms
-    Hist.plot_histograms(
+    hist.plot_histograms(
         data_sets=set_of_strokes,
         title='Histogram of number of strokes',
         x_label='Number of Strokes',
@@ -97,7 +97,7 @@ def print_comparative_outcomes(sim_outcomes_none, sim_outcomes_anticoag):
     """
 
     # increase in mean survival time under anticoagulation therapy with respect to no therapy
-    increase_survival_time = Stat.DifferenceStatIndp(
+    increase_survival_time = stat.DifferenceStatIndp(
         name='Increase in mean survival time',
         x=sim_outcomes_anticoag.survivalTimes,
         y_ref=sim_outcomes_none.survivalTimes)
@@ -111,7 +111,7 @@ def print_comparative_outcomes(sim_outcomes_none, sim_outcomes_anticoag):
           estimate_CI)
 
     # increase in mean discounted cost under combination therapy with respect to mono therapy
-    increase_discounted_cost = Stat.DifferenceStatIndp(
+    increase_discounted_cost = stat.DifferenceStatIndp(
         name='Increase in mean discounted cost',
         x=sim_outcomes_anticoag.costs,
         y_ref=sim_outcomes_none.costs)
@@ -126,7 +126,7 @@ def print_comparative_outcomes(sim_outcomes_none, sim_outcomes_anticoag):
           estimate_CI)
 
     # increase in mean discounted utility under combination therapy with respect to mono therapy
-    increase_discounted_utility = Stat.DifferenceStatIndp(
+    increase_discounted_utility = stat.DifferenceStatIndp(
         name='Increase in mean discounted utility',
         x=sim_outcomes_anticoag.utilities,
         y_ref=sim_outcomes_none.utilities)
@@ -140,7 +140,7 @@ def print_comparative_outcomes(sim_outcomes_none, sim_outcomes_anticoag):
           estimate_CI)
 
     # change in number of strokes
-    increase_number_strokes = Stat.DifferenceStatIndp(
+    increase_number_strokes = stat.DifferenceStatIndp(
         name='change in number of strokes',
         x=sim_outcomes_anticoag.nStrokes,
         y_ref=sim_outcomes_none.nStrokes)
@@ -162,13 +162,13 @@ def report_CEA_CBA(sim_outcomes_none, sim_outcomes_anticoag):
     """
 
     # define two strategies
-    no_therapy_strategy = Econ.Strategy(
+    no_therapy_strategy = econ.Strategy(
         name='No Therapy',
         cost_obs=sim_outcomes_none.costs,
         effect_obs=sim_outcomes_none.utilities,
         color='red'
     )
-    anticoag_therapy_strategy = Econ.Strategy(
+    anticoag_therapy_strategy = econ.Strategy(
         name='Anticoagulation Therapy',
         cost_obs=sim_outcomes_anticoag.costs,
         effect_obs=sim_outcomes_anticoag.utilities,
@@ -177,7 +177,7 @@ def report_CEA_CBA(sim_outcomes_none, sim_outcomes_anticoag):
 
     # do cost-effectiveness analysis
     # (the first strategy in the list of strategies is assumed to be the 'Base' strategy)
-    CEA = Econ.CEA(
+    CEA = econ.CEA(
         strategies=[no_therapy_strategy, anticoag_therapy_strategy],
         if_paired=False
     )
@@ -201,7 +201,7 @@ def report_CEA_CBA(sim_outcomes_none, sim_outcomes_anticoag):
         icer_digits=2)
 
     # cost-benefit analysis
-    CBA = Econ.CBA(
+    CBA = econ.CBA(
         strategies=[no_therapy_strategy, anticoag_therapy_strategy],
         wtp_range=[0, 100000],
         if_paired=False

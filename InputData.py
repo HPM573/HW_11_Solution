@@ -7,7 +7,7 @@ ALPHA = 0.05
 DISCOUNT = 0.03     # annual discount rate
 
 P_STROKE = 0.05         # annual probability of stroke in state Well
-P_RE_STROKE = 0.1     # annual probability of recurrent stroke
+P_RE_STROKE = 0.2     # annual probability of recurrent stroke
 P_SURV = 0.7       # probability of surviving a stroke
 
 

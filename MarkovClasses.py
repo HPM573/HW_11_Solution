@@ -1,9 +1,9 @@
+import deampy.econ_eval as econ
+import deampy.statistics as stat
 import numpy as np
+from deampy.markov import MarkovJumpProcess
+from deampy.plots.sample_paths import PrevalencePathBatchUpdate
 
-import SimPy.EconEval as Econ
-import SimPy.Markov as Markov
-import SimPy.Plots.SamplePaths as Path
-import SimPy.Statistics as Stat
 from InputData import HealthStates
 
 
@@ -18,8 +18,8 @@ class Patient:
 
         # random number generator
         rng = np.random.RandomState(seed=self.id)
-        # jump process
-        markov_jump = Markov.MarkovJumpProcess(transition_prob_matrix=self.params.probMatrix)
+        # Markov jump process
+        markov_jump = MarkovJumpProcess(transition_prob_matrix=self.params.probMatrix)
 
         k = 0  # simulation time step
 
@@ -84,10 +84,10 @@ class PatientCostUtilityMonitor:
         utility = 0.5 * (self.params.annualStateUtilities[current_state.value] +
                          self.params.annualStateUtilities[next_state.value])
 
-        self.totalDiscountedCost += Econ.pv_single_payment(payment=cost,
+        self.totalDiscountedCost += econ.pv_single_payment(payment=cost,
                                                            discount_rate=self.params.discountRate/2,
                                                            discount_period=2 * t+1)
-        self.totalDiscountedUtility += Econ.pv_single_payment(payment=utility,
+        self.totalDiscountedUtility += econ.pv_single_payment(payment=utility,
                                                               discount_rate=self.params.discountRate/2,
                                                               discount_period=2 * t+1)
 
@@ -142,16 +142,16 @@ class CohortOutcomes:
         """ calculates the cohort outcomes
         :param initial_pop_size: initial population size
         """
-        self.statSurvivalTime = Stat.SummaryStat(
+        self.statSurvivalTime = stat.SummaryStat(
             name='Survival Time', data=self.survivalTimes)
-        self.statCost = Stat.SummaryStat(
+        self.statCost = stat.SummaryStat(
             name='Discounted cost', data=self.costs)
-        self.statUtility = Stat.SummaryStat(
+        self.statUtility = stat.SummaryStat(
             name='Discounted utility', data=self.utilities)
-        self.statNumStrokes = Stat.SummaryStat(
+        self.statNumStrokes = stat.SummaryStat(
             name='Total Number of Strokes', data=self.nStrokes)
 
-        self.nLivingPatients = Path.PrevalencePathBatchUpdate(
+        self.nLivingPatients = PrevalencePathBatchUpdate(
             name='# of living patients',
             initial_size=initial_pop_size,
             times_of_changes=self.survivalTimes,

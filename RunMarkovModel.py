@@ -2,8 +2,8 @@ import InputData as D
 import ParameterClasses as P
 import MarkovClasses as Cls
 import SupportMarkovModel as Support
-import SimPy.Plots.SamplePaths as Path
-import SimPy.Plots.Histogram as Hist
+import deampy.plots.histogram as hist
+import deampy.plots.sample_paths as path
 
 # selected therapy
 therapy = P.Therapies.NONE
@@ -17,14 +17,14 @@ myCohort = Cls.Cohort(id=1,
 myCohort.simulate(n_time_steps=D.SIM_TIME_STEPS)
 
 # plot the sample path (survival curve)
-Path.plot_sample_path(
+path.plot_sample_path(
     sample_path=myCohort.cohortOutcomes.nLivingPatients,
     title='Survival Curve',
     x_label='Time-Step (Year)',
     y_label='Number Survived')
 
 # plot the histogram of survival times
-Hist.plot_histogram(
+hist.plot_histogram(
     data=myCohort.cohortOutcomes.survivalTimes,
     title='Histogram of Patient Survival Time',
     x_label='Survival Time (Year)',
@@ -32,7 +32,7 @@ Hist.plot_histogram(
     bin_width=1)
 
 # histogram of number of strokes
-Hist.plot_histogram(
+hist.plot_histogram(
     data=myCohort.cohortOutcomes.nStrokes,
     title='Histogram of Number of Strokes',
     x_label='Number of Strokes',
