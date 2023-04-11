@@ -1,8 +1,9 @@
-import InputData as D
 import deampy.econ_eval as econ
 import deampy.plots.histogram as hist
 import deampy.plots.sample_paths as path
 import deampy.statistics as stat
+
+import InputData as D
 
 
 def print_outcomes(sim_outcomes, therapy_name):
@@ -187,7 +188,7 @@ def report_CEA_CBA(sim_outcomes_none, sim_outcomes_anticoag):
         title='Cost-Effectiveness Analysis',
         x_label='Additional QALYs',
         y_label='Additional Cost',
-        x_range=(-0.6, 1.5),
+        x_range=(-0.5, 2.0),
         y_range=(-5000, 50000),
         interval_type='c'
     )
@@ -207,10 +208,10 @@ def report_CEA_CBA(sim_outcomes_none, sim_outcomes_anticoag):
         if_paired=False
     )
     # show the net monetary benefit figure
-    CBA.plot_incremental_nmbs(
+    CBA.plot_marginal_nmb_lines(
         title='Cost-Benefit Analysis',
         x_label='Willingness-to-pay per QALY ($)',
-        y_label='Incremental Net Monetary Benefit ($)',
+        y_label='Marginal Net Monetary Benefit ($)',
         interval_type='c',
         show_legend=True,
         figure_size=(6, 5)
