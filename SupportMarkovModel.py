@@ -188,8 +188,8 @@ def report_CEA_CBA(sim_outcomes_none, sim_outcomes_anticoag):
         title='Cost-Effectiveness Analysis',
         x_label='Additional QALYs',
         y_label='Additional Cost',
-        x_range=(-0.5, 2.0),
-        y_range=(-5000, 50000),
+        x_range=(-0.5, 1.0),
+        y_range=(-5000, 15000),
         interval_type='c'
     )
 
