@@ -1,7 +1,7 @@
 from enum import Enum
 
 # simulation settings
-POP_SIZE = 25000         # cohort population size
+POP_SIZE = 50000         # cohort population size
 SIM_TIME_STEPS = 50    # length of simulation (years)
 ALPHA = 0.05        # significance level for calculating confidence intervals
 DISCOUNT = 0.03     # annual discount rate
@@ -39,7 +39,7 @@ ANNUAL_STATE_COST = [
     5000,   # STROKE
 ]
 
-ANTICOAG_COST = 25000
+ANTICOAG_COST = 5000
 
 # anticoagulation relative risk in reducing stroke incidence while in “Post-Stroke”
-ANTICOAG_RR = 0.45
+ANTICOAG_RR = 0.65
