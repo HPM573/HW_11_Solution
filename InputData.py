@@ -27,7 +27,7 @@ ANNUAL_STATE_UTILITY = [
     0.9,        # POST- STROKE
     0,          # DEATH
     0,          # ALL_CAUSE_DEATH
-    0.8865,     # STROKE WHEN CYCLE IS 1 YEAR
+    0.2 * 1/52 + 0.9 * 51/52,     # STROKE WHEN CYCLE IS 1 YEAR
 ]
 
 # annual cost of each health state
