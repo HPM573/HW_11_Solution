@@ -97,12 +97,12 @@ def get_prob_matrix_anticoag(prob_matrix_no_anticoag):
     # prob_matrix_no_anticoag (see HW 1, Problem 4 for an example).
     prob_matrix = copy.deepcopy(prob_matrix_no_anticoag)
 
-    prob_matrix[HealthStates.WELL.value][HealthStates.STROKE.value] = \
-        prob_matrix_no_anticoag[HealthStates.WELL.value][HealthStates.STROKE.value] * \
-            ANTICOAG_RR
-    prob_matrix[HealthStates.WELL.value][HealthStates.WELL.value] = \
-        1 - prob_matrix[HealthStates.WELL.value][HealthStates.STROKE.value] - \
-            prob_matrix[HealthStates.WELL.value][HealthStates.ALL_CAUSE_DEATH.value]
+    # prob_matrix[HealthStates.WELL.value][HealthStates.STROKE.value] = \
+    #     prob_matrix_no_anticoag[HealthStates.WELL.value][HealthStates.STROKE.value] * \
+    #         ANTICOAG_RR
+    # prob_matrix[HealthStates.WELL.value][HealthStates.WELL.value] = \
+    #     1 - prob_matrix[HealthStates.WELL.value][HealthStates.STROKE.value] - \
+    #         prob_matrix[HealthStates.WELL.value][HealthStates.ALL_CAUSE_DEATH.value]
 
     # change the probability of moving from 'post-stroke' to 'stroke' when anti-coagulation is used
     prob_matrix[HealthStates.POST_STROKE.value][HealthStates.STROKE.value] = \

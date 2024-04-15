@@ -204,7 +204,7 @@ def report_CEA_CBA(sim_outcomes_none, sim_outcomes_anticoag):
     # cost-benefit analysis
     CBA = econ.CBA(
         strategies=[no_therapy_strategy, anticoag_therapy_strategy],
-        wtp_range=[0, 50000],
+        wtp_range=[0, 100000],
         if_paired=False
     )
     # show the net monetary benefit figure
